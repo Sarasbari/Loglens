@@ -1,0 +1,73 @@
+# =========================
+# Python bytecode
+# =========================
+# Python compiles .py files to bytecode and caches them here.
+# These are machine-generated and should never be committed.
+__pycache__/
+*.py[cod]
+
+# =========================
+# Virtual environment
+# =========================
+# Our isolated Python installation (Phase 0).
+# Contains all installed packages (pytest, etc.).
+# Each developer recreates this from requirements.
+venv/
+.venv/
+
+# =========================
+# Testing
+# =========================
+# pytest cache directory (stores last-failed info, etc.)
+.pytest_cache/
+
+# Coverage reports (if we add pytest-cov later)
+.coverage
+htmlcov/
+
+# =========================
+# Distribution / Packaging
+# =========================
+# Generated when we add pyproject.toml and build the package.
+dist/
+build/
+*.egg-info/
+
+# =========================
+# Type checking
+# =========================
+# Cache directories for mypy or pyright (if we add type checking).
+.mypy_cache/
+
+# =========================
+# IDE / Editor
+# =========================
+# VSCode workspace settings and history
+.vscode/
+
+# JetBrains (PyCharm) project files
+.idea/
+
+# Vim swap and backup files
+*.swp
+*.swo
+*~
+
+# =========================
+# OS generated
+# =========================
+# macOS Finder metadata
+.DS_Store
+
+# Windows thumbnail cache
+Thumbs.db
+
+# =========================
+# Secrets
+# =========================
+# Environment file containing API keys (Gemini key in Phase 6).
+# NEVER commit this file.
+.env
+.env.local
+docs/
+AGENTS.md
