@@ -1,0 +1,26 @@
+Nov  5 06:25:01 webserver01 CRON[1042]: (root) CMD (/usr/local/bin/backup.sh)
+Nov  5 06:30:00 webserver01 systemd[1]: Starting Daily apt upgrade and clean activities...
+Nov  5 06:30:15 webserver01 systemd[1]: apt-daily-upgrade.service: Deactivated successfully.
+Nov  5 07:10:02 webserver01 sshd[2081]: Accepted publickey for deploy from 192.168.1.50 port 51234 ssh2
+Nov  5 07:12:45 webserver01 sshd[2084]: Failed password for invalid user admin from 198.51.100.4 port 42812 ssh2
+Nov  5 07:12:48 webserver01 sshd[2086]: Failed password for invalid user root from 198.51.100.4 port 42814 ssh2
+Nov  5 07:12:51 webserver01 sshd[2088]: Failed password for invalid user test from 198.51.100.4 port 42816 ssh2
+Nov  5 07:15:00 db-primary systemd[1]: Starting PostgreSQL database server...
+Nov  5 07:15:02 db-primary postgresql[3100]: [1-1] LOG:  database system was shut down at 2026-11-05 07:14:59 UTC
+Nov  5 07:15:03 db-primary postgresql[3100]: [2-1] LOG:  database system is ready to accept connections
+Nov  5 07:45:22 webserver01 kernel: [ 4812.193021] TCP: request_sock_TCP: Possible SYN flooding on port 80. Sending cookies.
+Nov  5 08:00:01 webserver01 CRON[3502]: (root) CMD (/usr/local/bin/healthcheck.sh)
+Nov  5 08:15:10 cache01 redis[912]: 912:M 05 Nov 2026 08:15:10.123 * 10000 keys saved in 9 ms
+Nov  5 08:30:22 webserver01 sshd[4105]: Failed password for invalid user guest from 203.0.113.88 port 38901 ssh2
+Nov  5 08:30:25 webserver01 sshd[4107]: Failed password for invalid user ubuntu from 203.0.113.88 port 38903 ssh2
+Nov  5 08:42:19 webserver01 nginx[5021]: 2026/11/05 08:42:19 [error] 5021#5021: *12 connect() failed (111: Connection refused) while connecting to upstream
+Nov  5 09:00:01 webserver01 CRON[5890]: (root) CMD (/usr/local/bin/sync_metrics.sh)
+Nov  5 09:20:18 webserver01 nginx[5021]: 2026/11/05 09:20:18 [error] 5021#5021: *15 upstream timed out (110: Connection timed out) while reading response header from upstream
+Nov  5 09:45:00 db-primary postgresql[3100]: [3-1] ERROR:  canceling statement due to lock timeout
+Nov  5 10:00:01 webserver01 CRON[6710]: (root) CMD (/usr/local/bin/healthcheck.sh)
+Nov  5 10:14:33 webserver01 kernel: Out of memory: Killed process 7201 (node) total-vm:4124500kB, anon-rss:2104500kB, file-rss:1200kB
+Nov  5 10:15:02 webserver01 systemd[1]: api-backend.service: Main process exited, code=killed, status=9/KILL
+Nov  5 10:15:02 webserver01 systemd[1]: api-backend.service: Failed with result 'oom-kill'.
+Nov  5 10:15:05 webserver01 systemd[1]: api-backend.service: Scheduled restart job, restart counter is at 1.
+Nov  5 10:15:06 webserver01 systemd[1]: api-backend.service: Started API Backend Service.
+
