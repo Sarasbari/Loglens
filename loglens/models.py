@@ -2,7 +2,7 @@
 
 This module defines the data structures that every other module
 in the project imports. It is the single source of truth for
-what a parsed log entry looks like.
+what a parsed log entry and query criteria look like.
 
 Design decision: We use two separate dataclasses (NginxAccessEntry
 and SyslogEntry) instead of one class with Optional fields. This
@@ -85,3 +85,31 @@ class SyslogEntry:
 # logic is needed.
 LogEntry = NginxAccessEntry | SyslogEntry
 
+
+@dataclass
+class FilterCriteria:
+    """Criteria used to filter parsed log entries.
+
+    All attributes default to None. If an attribute is set, entries must
+    match that condition. When multiple attributes are set, an entry must
+    match ALL of them (Boolean AND logic).
+
+    Attributes:
+        min_status: Minimum HTTP status code (e.g. 500). Applies to Nginx.
+        max_status: Maximum HTTP status code (e.g. 599). Applies to Nginx.
+        start_time: Filter entries at or after this timestamp.
+        end_time: Filter entries at or before this timestamp.
+        ip: Client IP address (exact match on Nginx IP or substring match in Syslog).
+        path_pattern: Regex pattern or substring to match against request path.
+        service: Service name to match (exact match on Syslog service).
+        message_pattern: Regex pattern or substring to match against log message.
+    """
+
+    min_status: int | None = None
+    max_status: int | None = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    ip: str | None = None
+    path_pattern: str | None = None
+    service: str | None = None
+    message_pattern: str | None = None
