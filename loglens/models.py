@@ -2,7 +2,7 @@
 
 This module defines the data structures that every other module
 in the project imports. It is the single source of truth for
-what a parsed log entry and query criteria look like.
+what a parsed log entry, query criteria, and aggregation metrics look like.
 
 Design decision: We use two separate dataclasses (NginxAccessEntry
 and SyslogEntry) instead of one class with Optional fields. This
@@ -11,7 +11,7 @@ checks needed. The trade-off is that downstream code must handle
 both types, typically with isinstance() checks or Union types.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 
@@ -113,3 +113,41 @@ class FilterCriteria:
     path_pattern: str | None = None
     service: str | None = None
     message_pattern: str | None = None
+
+
+@dataclass
+class AggregationResult:
+    """Statistical summary of a collection of log entries.
+
+    Holds deterministically computed counts, distributions, and rankings.
+    These numbers serve as the ground truth for reports and LLM validation.
+
+    Attributes:
+        total_entries: Total number of log entries analyzed.
+        status_counts: Frequency count of HTTP status codes (e.g. {200: 12, 500: 4}).
+        client_error_count: Total count of 4xx client errors.
+        server_error_count: Total count of 5xx server errors.
+        total_bytes: Sum of response body bytes transferred.
+        top_ips: Ranked list of (IP, count) tuples for top clients.
+        top_paths: Ranked list of (path, count) tuples for top requested endpoints.
+        host_counts: Frequency count of events per host (Syslog).
+        service_counts: Frequency count of events per service (Syslog).
+        entries_per_hour: Chronological count of events grouped by hour (e.g. '08:00': 11).
+    """
+
+    total_entries: int = 0
+
+    # Nginx-specific metrics
+    status_counts: dict[int, int] = field(default_factory=dict)
+    client_error_count: int = 0
+    server_error_count: int = 0
+    total_bytes: int = 0
+    top_ips: list[tuple[str, int]] = field(default_factory=list)
+    top_paths: list[tuple[str, int]] = field(default_factory=list)
+
+    # Syslog-specific metrics
+    host_counts: dict[str, int] = field(default_factory=dict)
+    service_counts: dict[str, int] = field(default_factory=dict)
+
+    # Shared temporal metric
+    entries_per_hour: dict[str, int] = field(default_factory=dict)
