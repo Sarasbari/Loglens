@@ -2,7 +2,8 @@
 
 This module defines the data structures that every other module
 in the project imports. It is the single source of truth for
-what a parsed log entry, query criteria, and aggregation metrics look like.
+what a parsed log entry, query criteria, aggregation metrics,
+and validated incident reports look like.
 
 Design decision: We use two separate dataclasses (NginxAccessEntry
 and SyslogEntry) instead of one class with Optional fields. This
@@ -78,11 +79,6 @@ class SyslogEntry:
 
 
 # Type alias: a LogEntry is either an NginxAccessEntry or a SyslogEntry.
-# This lets downstream modules write functions like:
-#     def filter_entries(entries: list[LogEntry]) -> list[LogEntry]:
-# without committing to a specific format. Internally, they use
-# isinstance() to check which type they have when format-specific
-# logic is needed.
 LogEntry = NginxAccessEntry | SyslogEntry
 
 
@@ -93,16 +89,6 @@ class FilterCriteria:
     All attributes default to None. If an attribute is set, entries must
     match that condition. When multiple attributes are set, an entry must
     match ALL of them (Boolean AND logic).
-
-    Attributes:
-        min_status: Minimum HTTP status code (e.g. 500). Applies to Nginx.
-        max_status: Maximum HTTP status code (e.g. 599). Applies to Nginx.
-        start_time: Filter entries at or after this timestamp.
-        end_time: Filter entries at or before this timestamp.
-        ip: Client IP address (exact match on Nginx IP or substring match in Syslog).
-        path_pattern: Regex pattern or substring to match against request path.
-        service: Service name to match (exact match on Syslog service).
-        message_pattern: Regex pattern or substring to match against log message.
     """
 
     min_status: int | None = None
@@ -121,18 +107,6 @@ class AggregationResult:
 
     Holds deterministically computed counts, distributions, and rankings.
     These numbers serve as the ground truth for reports and LLM validation.
-
-    Attributes:
-        total_entries: Total number of log entries analyzed.
-        status_counts: Frequency count of HTTP status codes (e.g. {200: 12, 500: 4}).
-        client_error_count: Total count of 4xx client errors.
-        server_error_count: Total count of 5xx server errors.
-        total_bytes: Sum of response body bytes transferred.
-        top_ips: Ranked list of (IP, count) tuples for top clients.
-        top_paths: Ranked list of (path, count) tuples for top requested endpoints.
-        host_counts: Frequency count of events per host (Syslog).
-        service_counts: Frequency count of events per service (Syslog).
-        entries_per_hour: Chronological count of events grouped by hour (e.g. '08:00': 11).
     """
 
     total_entries: int = 0
@@ -151,3 +125,39 @@ class AggregationResult:
 
     # Shared temporal metric
     entries_per_hour: dict[str, int] = field(default_factory=dict)
+
+
+@dataclass
+class IncidentReport:
+    """Validated, structured incident report produced by LLM analysis.
+
+    Attributes:
+        title: Short descriptive title of the incident.
+        severity: Incident severity level ('low', 'medium', 'high', 'critical').
+        affected_service: Name of the primary service or endpoint affected.
+        error_count: Number of errors (verified against deterministic aggregation).
+        summary: Clear narrative describing root cause and operational impact.
+        evidence_lines: List of verbatim log lines supporting the report.
+    """
+
+    title: str
+    severity: str
+    affected_service: str
+    error_count: int
+    summary: str
+    evidence_lines: list[str] = field(default_factory=list)
+
+
+@dataclass
+class ValidationResult:
+    """Result of validating an LLM-generated incident report.
+
+    Attributes:
+        is_valid: True if all structural, mathematical, and evidence checks passed.
+        report: The validated IncidentReport instance if is_valid is True, else None.
+        errors: Detailed list of reasons explaining why validation failed.
+    """
+
+    is_valid: bool
+    report: IncidentReport | None = None
+    errors: list[str] = field(default_factory=list)
