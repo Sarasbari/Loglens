@@ -136,12 +136,9 @@ class SyslogParser:
         groups = match.groupdict()
 
         try:
-            # Normalize internal multiple spaces (e.g. "Nov  5" -> "Nov 5")
             clean_ts = re.sub(r"\s+", " ", groups["timestamp"])
             parsed_dt = datetime.strptime(clean_ts, SYSLOG_TIME_FORMAT)
             timestamp = parsed_dt.replace(year=self.default_year)
-
-            # pid is optional; None if not present in the line
             pid = int(groups["pid"]) if groups["pid"] is not None else None
         except (ValueError, KeyError):
             return None
@@ -211,7 +208,11 @@ class LogParser:
         self.syslog_parser = SyslogParser(default_year=default_year)
 
     def detect_format_from_file(self, file_path: str | Path) -> str:
-        """Determine format by reading the first non-empty line of a file."""
+        """Determine format by reading the first non-empty line of a file.
+
+        Returns:
+            'nginx', 'syslog', or 'empty' if the file has 0 valid lines.
+        """
         path = Path(file_path)
         if not path.is_file():
             raise FileNotFoundError(f"Log file not found: {file_path}")
@@ -222,7 +223,7 @@ class LogParser:
                 if stripped:
                     return detect_format_from_line(stripped)
 
-        raise ValueError(f"Cannot detect format: file is empty: {file_path}")
+        return "empty"
 
     def parse_file(self, file_path: str | Path) -> list[LogEntry]:
         """Parse any supported log file, auto-detecting format if not specified."""
@@ -230,7 +231,9 @@ class LogParser:
         if fmt is None:
             fmt = self.detect_format_from_file(file_path)
 
-        if fmt == "nginx":
+        if fmt == "empty":
+            return []
+        elif fmt == "nginx":
             return list(self.nginx_parser.parse_file(file_path))
         elif fmt == "syslog":
             return list(self.syslog_parser.parse_file(file_path))

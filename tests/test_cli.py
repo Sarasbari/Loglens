@@ -6,7 +6,9 @@ These tests verify:
 3. Filtering via CLI flags (--status, --min-status, --ip, --service) accurately reduces metrics.
 4. Syslog files can be analyzed via CLI and filtered by service.
 5. Missing file paths exit with code 1 and write an error to stderr.
-6. Unknown arguments or invalid options exit cleanly.
+6. Empty log files are handled gracefully without crashing (0 entries analyzed).
+7. Binary or unrecognized file formats exit cleanly with an informative error message.
+8. The -v / --verbose flag outputs diagnostic information to stderr.
 """
 
 import json
@@ -85,3 +87,40 @@ class TestCLIAnalyzeCommand:
         assert "Total Entries Analyzed: 0" in captured.out
         assert "No entries found matching criteria." in captured.out
 
+    def test_analyze_empty_file_handled_gracefully(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """An empty file (0 bytes) should report 0 entries without crashing."""
+        empty_file = tmp_path / "empty.log"
+        empty_file.write_text("")
+
+        exit_code = main(["analyze", str(empty_file)])
+        captured = capsys.readouterr()
+
+        assert exit_code == 0
+        assert "Total Entries Analyzed: 0" in captured.out
+        assert "No entries found matching criteria." in captured.out
+
+    def test_analyze_unsupported_or_binary_file_returns_error(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """A file with non-log binary contents returns a clean error on stderr."""
+        binary_file = tmp_path / "corrupted.bin"
+        binary_file.write_bytes(b"\x00\x01\x02\x03\xff\xfe\xfdThis is not a log file")
+
+        exit_code = main(["analyze", str(binary_file)])
+        captured = capsys.readouterr()
+
+        assert exit_code == 1
+        assert "Error: Unable to detect log format" in captured.err
+
+    def test_analyze_verbose_flag_prints_diagnostics(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        exit_code = main(["analyze", "samples/nginx_sample.log", "--verbose"])
+        captured = capsys.readouterr()
+
+        assert exit_code == 0
+        assert "[VERBOSE] Target file:" in captured.err
+        assert "Detected format: nginx" in captured.err
+        assert "Successfully parsed 25 valid log entries." in captured.err
